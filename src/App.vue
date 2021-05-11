@@ -1,17 +1,44 @@
 <template>
   <div id="app">
     <img alt="Vue logo" src="./assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+    <div class="container-row">
+      <div class="container-col">
+        <TodoApp
+          @add="addItem"
+          @edit="editItem"
+          @delete="deleteItem"
+          :items="todos"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
-
+import TodoApp from "./components/TodoApp.vue";
+import { magnetar } from "./db/magnetar-setup";
+const todosCollection = magnetar.collection("todos");
+todosCollection.stream();
 export default {
   name: "App",
   components: {
-    HelloWorld,
+    TodoApp,
+  },
+  computed: {
+    todos() {
+      return todosCollection.data.values();
+    },
+  },
+  methods: {
+    addItem(item) {
+      todosCollection.insert(item);
+    },
+    editItem(item) {
+      todosCollection.doc(item.id).merge({ title: item.title });
+    },
+    deleteItem(item) {
+      todosCollection.delete(item.id);
+    },
   },
 };
 </script>
@@ -24,5 +51,15 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+}
+.container-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.container-col {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
 }
 </style>
